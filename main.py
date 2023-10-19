@@ -1,111 +1,189 @@
-import pyrogram
-from pyrogram import Client
-from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup,InlineKeyboardButton
-import bypasser
-import os
-import ddl
-import requests
-import threading
-from texts import HELP_TEXT
-from ddl import ddllist
-
-
-# bot
-bot_token = os.environ.get("TOKEN", "")
-api_hash = os.environ.get("HASH", "") 
-api_id = os.environ.get("ID", "")
-app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)  
-
-
-# handle ineex
-def handleIndex(ele,message,msg):
-    result = bypasser.scrapeIndex(ele)
-    try: app.delete_messages(message.chat.id, msg.id)
-    except: pass
-    for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
-
-
-# loop thread
-def loopthread(message):
-
-    urls = []
-    for ele in message.text.split():
-        if "http://" in ele or "https://" in ele:
-            urls.append(ele)
-    if len(urls) == 0: return
-
-    if bypasser.ispresent(ddllist,urls[0]):
-        msg = app.send_message(message.chat.id, "⚡ __generating...__", reply_to_message_id=message.id)
-    else:
-        if urls[0] in "https://olamovies" or urls[0] in "https://psa.pm/":
-            msg = app.send_message(message.chat.id, "🔎 __this might take some time...__", reply_to_message_id=message.id)
-        else:
-            msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
-
-    link = ""
-    for ele in urls:
-        if ele.split("/")[3] == "0:":
-            handleIndex(ele,message,msg)
-            return
-        elif bypasser.ispresent(ddllist,ele):
-            try: temp = ddl.direct_link_generator(ele)
-            except Exception as e: temp = "**Error**: " + str(e)
-        else:    
-            try: temp = bypasser.shortners(ele)
-            except Exception as e: temp = "**Error**: " + str(e)
-        print("bypassed:",temp)
-        link = link + temp + "\n\n"
-        
-    try: app.edit_message_text(message.chat.id, msg.id, f'__{link}__', disable_web_page_preview=True)
-    except:
-        try: app.edit_message_text(message.chat.id, msg.id, "__Failed to Bypass__")
-        except:
-            try: app.delete_messages(message.chat.id, msg.id)
-            except: pass
-            app.send_message(message.chat.id, "__Failed to Bypass__")
-
-
-# start command
-@app.on_message(filters.command(["start"]))
-def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    app.send_message(message.chat.id, f"__👋 Hi **{message.from_user.mention}**, i am Link Bypasser Bot, just send me any supported links and i will you get you results.\nCheckout /help to Read More__",
-    reply_markup=InlineKeyboardMarkup([[ InlineKeyboardButton("🌐 Source Code", url="https://github.com/bipinkrish/Link-Bypasser-Bot")]]), reply_to_message_id=message.id)
-
-
-# help command
-@app.on_message(filters.command(["help"]))
-def send_help(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    app.send_message(message.chat.id, HELP_TEXT, reply_to_message_id=message.id, disable_web_page_preview=True)
-
-
-# links
-@app.on_message(filters.text)
-def receive(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    bypass = threading.Thread(target=lambda:loopthread(message),daemon=True)
-    bypass.start()
-
-
-# doc thread
-def docthread(message):
-    if message.document.file_name.endswith("dlc"):
-        msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
-        print("sent DLC file")
-        sess = requests.session()
-        file = app.download_media(message)
-        dlccont = open(file,"r").read()
-        link = bypasser.getlinks(dlccont,sess)
-        app.edit_message_text(message.chat.id, msg.id, f'__{link}__')
-        os.remove(file)
-
-
-# doc
-@app.on_message(filters.document)
-def docfile(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    bypass = threading.Thread(target=lambda:docthread(message),daemon=True)
-    bypass.start()
-
-
-# server loop
-print("Bot Starting")
-app.run()
+import requests,re
+from hh import keep_alive
+try:
+    import telebot
+except:
+    import os
+    os.system("pip install pyTelegramBotAPI")
+from telebot import *
+from GATEAU import Tele
+from colorama import Fore
+sto = {"stop":False}
+token = "6612870979:AAEnub1bC04Rf6fPo2KZl5-3LoUUs_IOCbo" 
+id = 860357355
+bot=telebot.TeleBot(token,parse_mode="HTML")
+@bot.message_handler(commands=["stop"])
+def start(message):
+    sto.update({"stop":False})
+    bot.reply_to(message,'𝐼 𝑠𝑡𝑜𝑝𝑝𝑒𝑑 𝑡𝒉𝑒 𝑐𝑜𝑚𝑏𝑜 𝑓𝑜𝑟 𝑦𝑜𝑢, 𝑤𝑖𝑡𝒉 𝑦𝑜𝑢𝑟 𝑝𝑒𝑟𝑚𝑖𝑠𝑠𝑖𝑜𝑛. 𝑊𝑎𝑖𝑡 10𝑠')
+@bot.message_handler(commands=["vip"])
+def start(message):
+    sto.update({"vip":False})
+    bot.reply_to(message,'╔═══════════════\n╟✅𝗕𝗿𝗮𝗶𝗻𝘁𝗿𝗲𝗲 𝗕𝗼𝘁 𝗔𝗰𝗰𝗲𝘀𝘀   ⚡️ \n╚═══════════════\n╔═══════════════\n╟✅1️⃣ 𝗗𝗮𝘆 3$ 💸 \n╚═══════════════\n╔═══════════════\n╟✅5️⃣ 𝗗𝗮𝘆 7$💸 \n╚═══════════════\n╔═══════════════\n╟✅1️⃣ 𝗪𝗲𝗲𝗸 10$  💸 \n╚═══════════════\n╔═══════════════\n╟✅1️⃣ 𝗠𝗼𝗻𝘁𝗵  15$ 💸 \n╚═══════════════\n╔═══════════════\n╟✅𝗦𝗼𝘂𝗿𝗰𝗲 𝗖𝗼𝗱𝗲 𝗕𝘆 @ChitNgexx \n╚═══════════════')
+@bot.message_handler(commands=["start"])
+def start(message):
+ bot.send_message(message.chat.id,"   ဘော့တ်မှကြိုဆိုပါတယ်။ \n  𝗪𝗼𝗿𝗸𝗶𝗻𝗴 𝗕𝗼𝘁  \n  𝐘𝐨𝐮 𝐚𝐫𝐞 𝐂𝐨𝐦𝐛𝐨 𝐭𝐱𝐭 𝐅𝐢𝐥𝐞 𝐒𝐞𝐧𝐝 𝐍𝐨𝐰 🇲🇲🇲🇲".format(message.chat.first_name),reply_markup=telebot.types.InlineKeyboardMarkup())
+@bot.message_handler(content_types=["document"])
+def main(message):
+ first_name = message.from_user.first_name
+ last_name = message.from_user.last_name
+ name=f"{first_name} {last_name}"
+ risk=0
+ bad=0
+ nok=0
+ ok = 0
+ ko = (bot.reply_to(message,f" 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 {name} 𝙄 𝙒𝙄𝙇𝙇 𝙉𝙊𝙒 𝙎𝙏𝘼𝙍𝙏 𝘾𝙃𝙀𝘾𝙆").message_id)
+ ee=bot.download_file(bot.get_file(message.document.file_id).file_path)
+ with open("combo.txt","wb") as w:
+     w.write(ee)
+ print(message.chat.id)
+ sto.update({"stop":True})
+ if message.chat.id == id:
+   with open("combo.txt") as file:
+       lino = file.readlines()
+       lino = [line.rstrip() for line in lino]
+       total = len(lino)
+       for cc in lino:
+           if sto["stop"] == True:
+               pass
+           else:
+               break
+           bin=cc[:6]
+           url=f"https://lookup.binlist.net/{bin}"
+           try:
+           	req=requests.get(url).json()
+           except:
+           	pass
+           try:
+           	inf = req['scheme']
+           except:
+           	inf = "------------"
+           try:
+           	type = req['type']
+           except:
+           	type = "-----------"
+           try:
+           	brand = req['brand']
+           except:
+           	brand = '-----'
+           try:
+           	info = inf + '-' + type + '-' + brand
+           except:
+           	info = "CREDIT-CORPORATE"
+           try:
+           	ii = info.upper()
+           except:
+           	ii = "----------"
+           try:
+           	bank = req['bank']['name'].upper()
+           except:
+           	bank = "CAPITAL ONE"
+           try:
+           	do = req['country']['name'] + ' ' + req['country']['emoji'].upper()
+           except:
+           	do = "-----------"
+           mes = types.InlineKeyboardMarkup(row_width=1)
+           GALD1 = types.InlineKeyboardButton(f"• {cc} •",callback_data='u8')
+           ##GALD2 = types.InlineKeyboardButton(f"• {cc} •",callback_data='u1')
+           GALD3 = types.InlineKeyboardButton(f"• 𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅ : [ {ok} ] •",callback_data='u2')
+           GALD4 = types.InlineKeyboardButton(f"• 𝗗𝗲𝗰𝗹𝗶𝗻𝗲𝗱 ❌  : [ {bad} ] •",callback_data='u1')
+           risk6 = types.InlineKeyboardButton(f"• 𝗥𝗜𝗦𝗞 🥲  : [ {risk} ] •",callback_data='u1')
+           GALD5 = types.InlineKeyboardButton(f"• 𝗧𝗢𝗧𝗔𝗟 🇲🇲  : [ {total} ] •",callback_data='u1')
+           mes.add(GALD1,GALD3,GALD4,risk6,GALD5)
+           bot.edit_message_text(chat_id=message.chat.id,message_id=ko,text=f''' 𓆩 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 𓆪ꪾ  {name}, 𝗖𝗵𝗲𝗰𝗸𝗶𝗻𝗴 𝘆𝗼𝘂𝗿 𝗰𝗮𝗿𝗱...⌛💸
+    ''',parse_mode='markdown',reply_markup=mes)
+           
+           try:
+             last = str(Tele(cc))
+           except Exception as e:
+               print(e)
+               try:
+                  last = str(Tele(cc))
+               except Exception as e:
+                  print(e)
+                  bot.reply_to(message,f"𝑪𝑨𝑹𝑫 𝑰𝑺 𝑫𝑬𝑨𝑫 𝑨𝑵𝑫 𝑰 𝑺𝑲𝑰𝑷𝑷𝑬𝑫 >> {cc}")
+           if "risk" in last:
+           	risk += 1
+           	print(Fore.YELLOW+cc+"->"+Fore.CYAN+last)
+           elif "Insufficient Funds" in last:
+               ok +=1
+               respo = f'''
+𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅
+──────────────────
+[↯] 𝗖𝗖 ★ {cc}
+[↯] 𝗚𝗮𝘁𝗲𝘄𝗮𝘆 ★ 𓆩𝐁𝐫𝐚𝐢𝐧𝐭𝐫𝐞𝐞𓆪ꪾ 𝙰𝚞𝚝𝚑
+[↯] 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲 ★ <𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱ꪜ 
+──────────────────
+[↯] 𝗕𝗜𝗡 𝗜𝗻𝗳𝗼: {ii}
+[↯] 𝗕𝗮𝗻𝗸: {bank}
+[↯] 𝗖𝗼𝘂𝗻𝘁𝗿𝘆: {do}
+──────────────────
+[↯] 𝗖𝗛𝗞 𝗕𝗢𝗧: 𓆩𝙊𝙬𝙣𝙚𝙧𓆪ꪾᶜⁿꪜ 
+[↯] 𝗕𝗢𝗧 𝗕𝗬: 『ᝯׁhׁׅ֮ꪱׁׅtׁׅꪀׁׅᧁׁꫀׁׅܻ 』𓆩 𝐂𝐇 𓆪ꪾᶜⁿꪜ🇲🇲 
+[↯] 𝗣𝗥𝗢𝗫𝗬 : 𝗟𝗶𝘃𝗲 [1XX.XX.XX 🟢]
+──────────────────
+'''
+               print(Fore.YELLOW+cc+"->"+Fore.GREEN+last)
+               bot.reply_to(message,respo)
+               with open("hit.txt", "a") as f:
+               	f.write(f'''
+±++++++++++++++++++++++++++++
+𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅
+──────────────────
+[↯] 𝗖𝗖 ★ {cc}
+[↯] 𝗚𝗮𝘁𝗲𝘄𝗮𝘆 ★ 𓆩𝐁𝐫𝐚𝐢𝐧𝐭𝐫𝐞𝐞𓆪ꪾ 𝙰𝚞𝚝𝚑
+[↯] 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲 ★ 𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱ꪜ 
+──────────────────
+[↯] 𝗕𝗜𝗡 𝗜𝗻𝗳𝗼: {ii}
+[↯] 𝗕𝗮𝗻𝗸: {bank}
+[↯] 𝗖𝗼𝘂𝗻𝘁𝗿𝘆: {do}
+──────────────────
+[↯] 𝗖𝗛𝗞 𝗕𝗢𝗧: 𓆩𝙊𝙬𝙣𝙚𝙧𓆪ꪾᶜⁿꪜ 
+[↯] 𝗕𝗢𝗧 𝗕𝗬: 『ᝯׁhׁׅ֮ꪱׁׅtׁׅꪀׁׅᧁׁꫀׁׅܻ 』𓆩 𝐂𝐇 𓆪ꪾᶜⁿꪜ🇲🇲 
+[↯] 𝗣𝗥𝗢𝗫𝗬 : 𝗟𝗶𝘃𝗲 [1XX.XX.XX 🟢]
+──────────────────''')
+           elif "Status code avs: Gateway Rejected: avs" in last or "Nice! New payment method added:" in last or "Status code 81724: Duplicate card exists in the vault." in last:
+               ok += 1
+               respo = (f'''
+━━━━[🌹𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅🌹]━━━━
+<a href='t.me/CHITNGE54'>━━━━━━━━━━━━━━━━━━</a>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗖𝗖 ★ <code>{cc}</code>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗚𝗮𝘁𝗲𝘄𝗮𝘆 ★ 𓆩𝐁𝐫𝐚𝐢𝐧𝐭𝐫𝐞𝐞𓆪ꪾ 𝙰𝚞𝚝𝚑
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲 ★ 𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱ꪜ
+<a href='t.me/CHITNGE54'>━━━━━━━━━━━━━━━━━━</a>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗕𝗜𝗡 𝗜𝗻𝗳𝗼 ↯ <code>{ii}</code>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗕𝗮𝗻𝗸 ↯ <code>{bank}</code>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗖𝗼𝘂𝗻𝘁𝗿𝘆 ↯ <code>{do}</code>
+<a href='t.me/CHITNGE54'>━━━━━━━━━━━━━━━━━━</a>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗖𝗛𝗞 𝗕𝗢𝗧 ↯ <a href='https://t.me/+dE_2R60xC7BmYmZl'> 𓆩𝗕𝗢𝗧𓆪ꪾᶜⁿꪜ </a>
+<a href='t.me/CHITNGE54'>[↯]</a> 𝗕𝗢𝗧 𝗕𝗬 ↯ <a href='https://t.me/+dE_2R60xC7BmYmZl'>『ᝯׁhׁׅ֮ꪱׁׅtׁׅꪀׁׅᧁׁꫀׁׅܻ 』𓆩 𝐂𝐇 𓆪ꪾᶜⁿꪜ🇲🇲 </a>
+<a href='https://t.me/+dE_2R60xC7BmYmZl'>[↯]</a> 𝗣𝗥𝗢𝗫𝗬  ↯ <code>𝗟𝗶𝘃𝗲 [1XX.XX.XX 🟢]</code>
+<a href='t.me/CHITNGE54'>━━━━━━━━━━━━━━━━━━</a>''')
+               print(Fore.YELLOW+cc+"->"+Fore.GREEN+last)
+               bot.reply_to(message,respo)
+               with open("hit.txt", "a") as f:
+               	f.write(f'''
+𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 ✅
+──────────────────
+[↯] 𝗖𝗖 ★ {cc}
+[↯] 𝗚𝗮𝘁𝗲𝘄𝗮𝘆 ★ 𓆩𝐁𝐫𝐚𝐢𝐧𝐭𝐫𝐞𝐞𓆪ꪾ 𝙰𝚞𝚝𝚑
+[↯] 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲 ★ <code>𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱ꪜ 
+──────────────────
+[↯] 𝗕𝗜𝗡 𝗜𝗻𝗳𝗼: {ii}
+[↯] 𝗕𝗮𝗻𝗸: {bank}
+[↯] 𝗖𝗼𝘂𝗻𝘁𝗿𝘆: {do}
+──────────────────
+[↯] 𝗖𝗛𝗞 𝗕𝗢𝗧: 𓆩𝙊𝙬𝙣𝙚𝙧𓆪ꪾᶜⁿꪜ 
+[↯] 𝗕𝗢𝗧 𝗕𝗬: 『ᝯׁhׁׅ֮ꪱׁׅtׁׅꪀׁׅᧁׁꫀׁׅܻ 』𓆩 𝐂𝐇 𓆪ꪾᶜⁿꪜ🇲🇲
+[↯] 𝗣𝗥𝗢𝗫𝗬 : 𝗟𝗶𝘃𝗲 [1XX.XX.XX 🟢]
+──────────────────''')
+           else:
+                   bad +=1
+                   print(Fore.YELLOW+cc+"->"+Fore.RED+last)
+       if sto["stop"] == True:
+           bot.reply_to(message,'Now Stop')
+ else:
+     bot.reply_to(message,'╔═══════════════\n╟𝗬𝗼𝘂 𝗡𝗼𝘁 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗨𝘀𝗲𝗿 😢😢\n╚═══════════════\n╔═══════════════\n╟𝗣𝗮𝗶𝗱 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗣𝗹𝗮𝗻\n╚═══════════════\n╔═══════════════\n╟𝗖𝗵𝗲𝗰𝗸 𝗩𝗶𝗽 𝗖𝗼𝗺𝗺𝗮𝗻𝗱  /vip \n╚═══════════════\n @ChitNgexx')
+keep_alive()
+print("STARTED BOT @ChitNgexx")
+bot.infinity_polling()
